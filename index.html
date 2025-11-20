@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enveloppe d'Amour — Responsive</title>
+  <style>
+    :root{
+      --bg-1: #fce7f3;
+      --bg-2: #fef2f2;
+      --accent-1: #f87171;
+      --accent-2: #ec4899;
+      --accent-3: #dc2626;
+      --card-bg: #fff;
+      --text-dark: #1f2937;
+      --max-width: 420px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,oxygen,ubuntu,cantarell,sans-serif;
+      background:linear-gradient(135deg,var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-1) 100%);
+      display:flex;align-items:center;justify-content:center;padding:20px;min-height:100vh;
+    }
+
+    /* Floating hearts container (non-interactive) */
+    .floating-hearts{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+    .float-heart{position:absolute;font-size:clamp(1rem,2.5vw,2rem);opacity:0.6;animation:float-up 6s infinite ease-in;}
+    @keyframes float-up{0%{transform:translateY(120vh) rotate(0);opacity:0}10%{opacity:0.8}90%{opacity:0.6}100%{transform:translateY(-120vh) rotate(360deg);opacity:0}}
+
+    /* Layout: responsive central container */
+    .container{width:100%;max-width:var(--max-width);z-index:5;position:relative;margin-inline:auto}
+
+    /* Envelope uses fluid sizing with aspect-ratio for responsiveness */
+    .envelope{width:100%;max-width:100%;aspect-ratio: 320 / 380;margin:0 auto;perspective:1000px}
+    .envelope-box{
+      position:relative;width:100%;height:100%;
+      background:linear-gradient(135deg,var(--accent-1) 0%, var(--accent-2) 100%);
+      border-radius:clamp(6px,1.2vw,8px);
+      box-shadow:0 20px 60px rgba(0,0,0,0.28),0 0 30px rgba(248,113,113,0.25);
+      border:4px solid var(--accent-3);
+      transform-style:preserve-3d;transition:transform .45s ease;
+      display:flex;align-items:center;justify-content:center;padding:clamp(18px,3vw,36px)
+    }
+
+    .envelope-box.shake{animation:shake .5s ease-in-out}
+    @keyframes shake{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-8px) rotate(-4deg)}75%{transform:translateX(8px) rotate(4deg)}}
+
+    .envelope-box.open{animation:envelopeOpen .8s ease-out forwards}
+    @keyframes envelopeOpen{0%{transform:scale(1) rotateX(0) opacity:1}50%{transform:scale(1.08) rotateX(18deg)}100%{transform:scale(0.5) rotateX(88deg) opacity:0}}
+
+    .envelope-flap{
+      position:absolute;top:0;left:50%;transform:translateX(-50%);
+      width:0;height:0;border-left:50% solid transparent;border-right:50% solid transparent;border-top:calc(30% + 40px) solid var(--accent-3);
+      transition:all .25s ease;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.12));
+    }
+
+    .envelope-box:hover .envelope-flap{border-top-color:#b91c1c}
+
+    .envelope-content{position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:center;gap:1rem}
+
+    .lock-icon{width:clamp(44px,9vw,60px);height:clamp(44px,9vw,60px);background:rgba(255,255,255,0.95);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:0.25rem;box-shadow:0 6px 16px rgba(0,0,0,0.12);font-size:clamp(20px,5vw,28px);animation:lockBounce 1s ease-in-out infinite}
+    @keyframes lockBounce{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+    h2{color:white;font-size:clamp(18px,3.5vw,24px);font-weight:700;text-align:center;text-shadow:0 2px 4px rgba(0,0,0,0.18)}
+    .subtitle{color:rgba(255,255,255,0.95);font-size:clamp(12px,2.2vw,14px);text-align:center}
+
+    form{width:100%;display:flex;flex-direction:column;gap:12px}
+    label.visually-hidden{position:absolute;left:-9999px}
+    input[type="text"]{width:100%;padding:12px 14px;border-radius:8px;border:2px solid rgba(255,255,255,0.6);background:rgba(255,255,255,0.92);font-size:clamp(13px,2.2vw,15px);outline:none;letter-spacing:1px}
+    input::placeholder{color:#9ca3af}
+    input:focus{box-shadow:0 0 0 4px rgba(252,165,165,0.22);border-color: #fecaca;background:#fff}
+
+    button{width:100%;padding:14px 18px;border-radius:10px;background:#fff;color:var(--accent-1);font-weight:700;border:none;cursor:pointer;font-size:clamp(14px,2.6vw,16px);box-shadow:0 8px 24px rgba(0,0,0,0.12);transition:transform .18s ease}
+    button:active{transform:scale(.98)}
+
+    .hearts-bottom{display:flex;gap:8px;justify-content:center}
+    .heart{font-size:clamp(14px,2.8vw,18px);animation:pulse 1.4s infinite}
+    @keyframes pulse{0%,100%{opacity:.6;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+
+    .error-message{color:var(--accent-2);font-size:12px;text-align:center;margin-top:4px;opacity:0}
+    .error-message.show{opacity:1;animation:shake-error .5s}
+    @keyframes shake-error{0%,100%{transform:translateX(0);opacity:0}50%{transform:translateX(4px);opacity:1}}
+
+    .attempts-left{color:rgba(255,255,255,0.85);font-size:11px;text-align:center}
+
+    /* Love card (message shown after success) */
+    .message{display:none;text-align:center}
+    .message.show{display:block}
+
+    .love-card{background:var(--card-bg);border-radius:12px;padding:clamp(20px,4vw,30px);box-shadow:0 20px 60px rgba(0,0,0,0.22);border:4px solid rgba(251,207,232,0.9);width:100%;max-width:100%;overflow:hidden}
+    .heart-animation{font-size:clamp(48px,12vw,80px);margin:0 auto 10px;display:block;animation:heartBeat .9s ease-in-out infinite}
+    @keyframes heartBeat{0%,100%{transform:scale(1)}25%{transform:scale(1.25)}50%{transform:scale(1)}75%{transform:scale(1.15)}}
+
+    .love-card h1{font-size:clamp(28px,8vw,48px);font-weight:900;background:linear-gradient(135deg,var(--accent-1),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px}
+    .love-card p{color:var(--text-dark);font-size:clamp(14px,2.4vw,16px);line-height:1.6}
+    .love-message{color:var(--accent-1);font-weight:800;display:block;margin-top:12px}
+
+    /* hearts bottom message */
+    .hearts-bottom-message{display:flex;gap:10px;justify-content:center;margin-top:14px}
+
+    /* Respect user's prefer-reduced-motion */
+    @media (prefers-reduced-motion: reduce){
+      .float-heart,.lock-icon,.heart-animation{animation:none}
+    }
+
+    /* Larger screens tweak */
+    @media(min-width:768px){
+      :root{--max-width:520px}
+      .envelope{aspect-ratio:320/380}
+      .envelope-box{padding:36px}
+    }
+
+    /* Very small screens tweak */
+    @media(max-width:340px){
+      .envelope-flap{border-top-width:calc(20% + 20px)}
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-hearts" id="floatingHearts" aria-hidden="true"></div>
+
+  <div class="container">
+    <div class="envelope" id="envelope">
+      <div class="envelope-box" id="envelopeBox">
+        <div class="envelope-flap" aria-hidden="true"></div>
+
+        <div class="envelope-content">
+          <div class="lock-icon" aria-hidden="true">🔒</div>
+          <h2>Enveloppe Spéciale</h2>
+          <p class="subtitle">Entre le code secret pour l'ouvrir</p>
+
+          <form id="codeForm">
+            <label for="codeInput" class="visually-hidden">Code secret</label>
+            <input type="text" id="codeInput" name="code" placeholder="Code secret..." autocomplete="off" maxlength="50" aria-label="Code secret" />
+            <button type="submit" id="openBtn">Ouvrir</button>
+          </form>
+
+          <div class="hearts-bottom" aria-hidden="true">
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+          </div>
+
+          <div class="error-message" id="errorMessage">Mauvais code ! 😢</div>
+          <div class="attempts-left" id="attemptsLeft" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="message" id="message" role="status" aria-live="polite">
+      <div class="love-card">
+        <div class="heart-animation" aria-hidden="true">❤️</div>
+        <h1>Love You</h1>
+        <p>
+          Tu as trouvé le code secret !<br>
+          Ce message est pour toi, ma chérie.
+          <span class="love-message">Je t'aime ❤️</span>
+        </p>
+        <div class="hearts-bottom-message" aria-hidden="true">
+          <span>💗</span><span>💗</span><span>💗</span><span>💗</span><span>💗</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Valid codes (case-insensitive)
+    const validCodes = ['leslie','zito','andrea','leslie zito andrea','leslie andrea zito','zito leslie andrea','zito andrea leslie','andrea leslie zito','andrea zito leslie'];
+    let attempts = 5;
+
+    function rand(min,max){return Math.random()*(max-min)+min}
+
+    function createFloatingHearts(){
+      const container = document.getElementById('floatingHearts');
+      const hearts = ['❤️','💗','💕','💓','💞'];
+      // generate a few floating hearts with randomized positions and durations
+      const count = Math.max(8, Math.round(Math.min(24, window.innerWidth/20)));
+      for(let i=0;i<count;i++){
+        const heart = document.createElement('div');
+        heart.className='float-heart';
+        heart.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+        heart.style.left = rand(0,100)+'%';
+        heart.style.top = rand(50,110)+'%';
+        heart.style.animationDelay = rand(0,5) + 's';
+        heart.style.animationDuration = rand(4,9) + 's';
+        heart.style.fontSize = (rand(1,2.5)) + 'rem';
+        container.appendChild(heart);
+      }
+    }
+
+    function handleSubmit(e){
+      e.preventDefault();
+      const codeInput = document.getElementById('codeInput');
+      const code = codeInput.value.toLowerCase().trim();
+      const envelopeBox = document.getElementById('envelopeBox');
+      const envelope = document.getElementById('envelope');
+      const message = document.getElementById('message');
+      const errorMessage = document.getElementById('errorMessage');
+      const attemptsLeft = document.getElementById('attemptsLeft');
+
+      if(validCodes.includes(code)){
+        envelopeBox.classList.add('open');
+        envelopeBox.setAttribute('aria-hidden','true');
+        setTimeout(()=>{
+          envelope.style.display='none';
+          message.classList.add('show');
+          createConfetti();
+        },800);
+      } else {
+        attempts--;
+        envelopeBox.classList.add('shake');
+        errorMessage.classList.add('show');
+        setTimeout(()=>{errorMessage.classList.remove('show')},1500);
+        if(attempts>0){
+          attemptsLeft.textContent = `${attempts} tentative${attempts>1?'s':''} restante${attempts>1?'s':''}`;
+        } else {
+          errorMessage.textContent = 'Plus de tentatives ! 😭';
+          attemptsLeft.textContent='';
+          codeInput.disabled=true;document.getElementById('openBtn').disabled=true;
+        }
+        setTimeout(()=>{envelopeBox.classList.remove('shake')},600);
+      }
+    }
+
+    function createConfetti(){
+      const container = document.getElementById('floatingHearts');
+      const hearts = ['🎉','❤️','💗','✨','💞'];
+      for(let i=0;i<20;i++){
+        const el = document.createElement('div');
+        el.className='float-heart';
+        el.textContent = hearts[Math.floor(Math.random()*hearts.length)];
+        el.style.left = rand(10,90)+'%';
+        el.style.animationDuration = rand(3,6)+'s';
+        el.style.fontSize = rand(1.2,3)+'rem';
+        el.style.animationDelay = rand(0,0.6)+'s';
+        container.appendChild(el);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('codeForm').addEventListener('submit', handleSubmit);
+    document.getElementById('codeInput').focus();
+    createFloatingHearts();
+
+    // Recreate hearts on resize for better distribution
+    let resizeTimer;
+    window.addEventListener('resize', ()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(()=>{
+        const container = document.getElementById('floatingHearts');
+        container.innerHTML = '';
+        createFloatingHearts();
+      },200);
+    });
+  </script>
+</body>
+</html>
